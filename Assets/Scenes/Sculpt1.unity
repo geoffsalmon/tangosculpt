@@ -131,6 +131,49 @@ Prefab:
     m_RemovedComponents: []
   m_ParentPrefab: {fileID: 100100000, guid: eca66899b90504167b643aadeaadf7e2, type: 2}
   m_IsPrefabParent: 0
+--- !u!1 &57578843
+GameObject:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  serializedVersion: 4
+  m_Component:
+  - 4: {fileID: 57578845}
+  - 114: {fileID: 57578844}
+  m_Layer: 0
+  m_Name: VoxelSculptBase
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 0
+--- !u!114 &57578844
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 57578843}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0c6d82a4340bb4a57b1d052378b6391b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  numPointsX: 10
+  numPointsY: 10
+  numPointsZ: 10
+  pointGap: 0.02
+--- !u!4 &57578845
+Transform:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 57578843}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_RootOrder: 10
 --- !u!1 &115214907
 GameObject:
   m_ObjectHideFlags: 0
@@ -203,7 +246,7 @@ GameObject:
   - 4: {fileID: 437881854}
   - 114: {fileID: 437881853}
   m_Layer: 0
-  m_Name: VoxelSculptBase
+  m_Name: CubeSculptBase
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -653,7 +696,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 054c3e670e3444836ac0907998a7761f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_prefabMarker: {fileID: 437881852}
+  m_prefabMarker: {fileID: 57578843}
   m_prefabTouchEffect: {fileID: 22497430, guid: 5a77b678bf7604d5fb4f0b5399e89224,
     type: 2}
   m_canvas: {fileID: 694750546}
