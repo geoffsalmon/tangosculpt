@@ -601,7 +601,11 @@ public class SculptGUIController : MonoBehaviour, ITangoLifecycle, ITangoDepth
         }
 
 		m_adding = true;
+		if (m_placedObject != null) {
+			Destroy(m_placedObject);
+		}
 		m_placedObject = (GameObject)Instantiate(m_prefabMarker, planeCenter, Quaternion.LookRotation(forward, up));
+		m_placedObject.gameObject.SetActive(true);
         m_selectedMarker = null;
     }
 
