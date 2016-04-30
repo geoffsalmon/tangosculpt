@@ -78,6 +78,13 @@ public class SculptGUIController : MonoBehaviour, ITangoLifecycle, ITangoDepth
     /// </summary>
     public TangoPointCloud m_pointCloud;
 
+
+	private GameObject m_placedObject;
+
+
+	private bool m_adding = true;
+
+
     private const float FPS_UPDATE_FREQUENCY = 1.0f;
     private string m_fpsText;
     private int m_currentFPS;
@@ -162,7 +169,7 @@ public class SculptGUIController : MonoBehaviour, ITangoLifecycle, ITangoDepth
     /// </summary>
     public void OnGUI()
     {
-        Rect distortionButtonRec = new Rect(UI_BUTTON_GAP_X,
+        /*Rect distortionButtonRec = new Rect(UI_BUTTON_GAP_X,
                                             Screen.height - UI_BUTTON_SIZE_Y - UI_BUTTON_GAP_X,
                                             UI_BUTTON_SIZE_X,
                                             UI_BUTTON_SIZE_Y);
@@ -171,7 +178,45 @@ public class SculptGUIController : MonoBehaviour, ITangoLifecycle, ITangoDepth
                        UI_FONT_SIZE + "Turn Distortion " + isOn + "</size>"))
         {
             m_arCameraPostProcess.enabled = !m_arCameraPostProcess.enabled;
-        }
+        }*/
+
+		Rect rect;
+		if (m_placedObject != null) {
+			if (!m_adding) {
+				rect = new Rect(UI_BUTTON_GAP_X,
+					UI_BUTTON_GAP_X,
+					UI_BUTTON_SIZE_X,
+					UI_BUTTON_SIZE_Y);
+				if (GUI.Button(rect,
+					   UI_FONT_SIZE + "+</size>")) {
+					Debug.Log("Press +");
+					m_adding = true;
+
+				}
+			} else {
+				rect = new Rect(UI_BUTTON_GAP_X,
+					2 * UI_BUTTON_GAP_X + UI_BUTTON_SIZE_Y,
+					UI_BUTTON_SIZE_X,
+					UI_BUTTON_SIZE_Y);
+				if (GUI.Button(rect,
+					   UI_FONT_SIZE + "-</size>")) {
+					Debug.Log("Press -");
+					m_adding = false;
+				}
+			}
+			rect = new Rect(UI_BUTTON_GAP_X,
+				3 * UI_BUTTON_GAP_X + 2 * UI_BUTTON_SIZE_Y,
+				UI_BUTTON_SIZE_X,
+				UI_BUTTON_SIZE_Y);
+			if (GUI.Button(rect,
+				    UI_FONT_SIZE + "Clear</size>")) {
+				Debug.Log("Press clear");
+				if (m_placedObject != null) {
+					Destroy(m_placedObject);
+					m_placedObject = null;
+				}
+			}
+		}
 
         if (m_showDebug && m_tangoApplication.HasRequestedPermissions())
         {
@@ -436,13 +481,18 @@ public class SculptGUIController : MonoBehaviour, ITangoLifecycle, ITangoDepth
     private void _UpdateLocationMarker()
     {
         if (Input.touchCount == 1)
-        {
+		{
             // Single tap -- place new location or select existing location.
             Touch t = Input.GetTouch(0);
             Vector2 guiPosition = new Vector2(t.position.x, Screen.height - t.position.y);
             Camera cam = Camera.main;
             RaycastHit hitInfo;
 
+
+			if (guiPosition.x < UI_BUTTON_SIZE_X + UI_BUTTON_GAP_X * 2) {
+				// ignore touches in left border
+				return;
+			}
             if (t.phase != TouchPhase.Began)
             {
                 return;
@@ -452,7 +502,7 @@ public class SculptGUIController : MonoBehaviour, ITangoLifecycle, ITangoDepth
             {
                 // do nothing, the button will handle it
             }
-            else if (Physics.Raycast(cam.ScreenPointToRay(t.position), out hitInfo))
+            /*else if (Physics.Raycast(cam.ScreenPointToRay(t.position), out hitInfo))
             {
                 // Found a marker, select it (so long as it isn't disappearing)!
                 GameObject tapped = hitInfo.collider.gameObject;
@@ -460,11 +510,15 @@ public class SculptGUIController : MonoBehaviour, ITangoLifecycle, ITangoDepth
                 {
                     m_selectedMarker = tapped.GetComponent<ARMarker>();
                 }
-            }
-            else
+            }*/
+			else if (m_placedObject == null)
             {
+				
 				Debug.Log("Place a thing");
                 // Place a new point at that location, clear selection
+
+
+
                 m_selectedMarker = null;
                 StartCoroutine(_WaitForDepthAndFindPlane(t.position));
 
@@ -546,7 +600,12 @@ public class SculptGUIController : MonoBehaviour, ITangoLifecycle, ITangoDepth
             forward = Vector3.Cross(up, cam.transform.right);
         }
 
-        Instantiate(m_prefabMarker, planeCenter, Quaternion.LookRotation(forward, up));
+		m_adding = true;
+		m_placedObject = (GameObject)Instantiate(m_prefabMarker, planeCenter, Quaternion.LookRotation(forward, up));
         m_selectedMarker = null;
     }
+
+	public bool GetAdding() {
+		return m_adding;
+	}
 }
