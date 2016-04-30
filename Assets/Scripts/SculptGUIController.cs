@@ -23,6 +23,7 @@ using System.Collections.Generic;
 using Tango;
 using UnityEngine;
 
+
 /// <summary>
 /// GUI controller controls all the debug overlay to show the data for poses.
 /// </summary>
@@ -606,10 +607,21 @@ public class SculptGUIController : MonoBehaviour, ITangoLifecycle, ITangoDepth
 		}
 		m_placedObject = (GameObject)Instantiate(m_prefabMarker, planeCenter, Quaternion.LookRotation(forward, up));
 		m_placedObject.gameObject.SetActive(true);
+		IGetSculptController[] comps = m_placedObject.GetComponentsInChildren<IGetSculptController>();
+		if (comps != null && comps.Length > 0) {
+			foreach (IGetSculptController c in comps) {
+				c.RegisterSculptController(this);
+			}
+		}
         m_selectedMarker = null;
     }
 
-	public bool GetAdding() {
+	public bool IsAdding() {
 		return m_adding;
 	}
+}
+
+
+public interface IGetSculptController {
+	void RegisterSculptController(SculptGUIController c);
 }

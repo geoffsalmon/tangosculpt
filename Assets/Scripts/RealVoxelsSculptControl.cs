@@ -1,7 +1,7 @@
 ﻿using UnityEngine;
 using System.Collections;
 
-public class RealVoxelsSculptControl : MonoBehaviour {
+public class RealVoxelsSculptControl : MonoBehaviour, IGetSculptController {
 
 	//public Vector3 numPoints = new Vector3(8, 10, 8);
 	public int numPointsX = 8;
@@ -18,6 +18,8 @@ public class RealVoxelsSculptControl : MonoBehaviour {
 	private bool m_voxelsDirty = true;
 
 	private GameObject m_container;
+
+	private SculptGUIController m_sculptController;
 
 	// Use this for initialization
 	void Start () {
@@ -66,26 +68,28 @@ public class RealVoxelsSculptControl : MonoBehaviour {
 		RaycastHit hit;
 		if (Physics.Raycast(ray, out hit, 100.0F)) {
 			GameObject obj = hit.collider.gameObject;
-			if (obj != m_selectObject) {
-				if (m_selectObject != null) {
-					setObjColor(m_selectObject, Color.white);
+			if (m_sculptController.IsAdding()) {
+				if (obj != m_selectObject) {
+					if (m_selectObject != null) {
+						setObjColor(m_selectObject, Color.white);
+					}
+					m_selectObject = obj;
+					setObjColor(m_selectObject, Color.red);
 				}
-				m_selectObject = obj;
-				setObjColor(m_selectObject, Color.red);
+			} else {
+				// remove selected
+				if (obj == m_selectObject) {
+					m_selectObject = null; 
+				}
+				Destroy(obj);
+				//Debug.Log("Hit " + hit.point);
+				//transform.position = ray.GetPoint(100.0F);
+				//m_lastHit = hit.point;
+				//m_select.SetActive(true);
+				//m_select.transform.position = m_lastHit;
+				//} else {
+				//Debug.Log("Miss");
 			}
-
-			// remove selected
-			if (m_selectObject != null) {
-				Destroy(m_selectObject);
-				m_selectObject = null; 
-			}
-			//Debug.Log("Hit " + hit.point);
-			//transform.position = ray.GetPoint(100.0F);
-			//m_lastHit = hit.point;
-			//m_select.SetActive(true);
-			//m_select.transform.position = m_lastHit;
-			//} else {
-			//Debug.Log("Miss");
 		} else {
 			if (m_selectObject != null) {
 				setObjColor(m_selectObject, Color.white);
@@ -137,5 +141,9 @@ public class RealVoxelsSculptControl : MonoBehaviour {
 			}
 			x += pointGap;
 		}
+	}
+
+	public void RegisterSculptController(SculptGUIController c) {
+		m_sculptController = c;
 	}
 }
