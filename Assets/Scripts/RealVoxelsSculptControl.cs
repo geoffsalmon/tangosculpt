@@ -8,6 +8,8 @@ public class RealVoxelsSculptControl : MonoBehaviour, IGetSculptController {
 	public int numPointsY = 10;
 	public int numPointsZ = 8;
 	public float pointGap = 0.02f;
+	private Vector3 cubeScale;
+
 
 
 	bool[,,] voxels;
@@ -23,6 +25,7 @@ public class RealVoxelsSculptControl : MonoBehaviour, IGetSculptController {
 
 	// Use this for initialization
 	void Start () {
+		cubeScale = Vector3.one * 0.9f * pointGap;
 		voxels = new bool[numPointsX, numPointsY, numPointsZ];
 		int i, j, k;
 		for (i = 0; i < numPointsX; i++) {
@@ -34,8 +37,6 @@ public class RealVoxelsSculptControl : MonoBehaviour, IGetSculptController {
 				}
 			}
 		}
-
-		Debug.Log("Located at " + transform.position);
 	}
 
 	private void setObjColor(GameObject obj, Color col) {
@@ -76,10 +77,47 @@ public class RealVoxelsSculptControl : MonoBehaviour, IGetSculptController {
 					m_selectObject = obj;
 					setObjColor(m_selectObject, Color.red);
 				}
+
+				Vector3 localNormal = transform.InverseTransformDirection(hit.normal);
+
+				localNormal.Normalize();
+				Vector3 addObjPos = obj.transform.localPosition + localNormal * pointGap;
+				int x, y, z;
+				if (voxelFromPos(addObjPos, out x, out y, out z)) {
+					if (!voxels[x, y, z]) {
+						voxels[x, y, z] = true;
+						GameObject cube = GameObject.CreatePrimitive(PrimitiveType.Cube);
+						voxelObjs[x, y, z] = cube;
+						Transform tr = cube.transform;
+						tr.SetParent(m_container.transform, false);
+						tr.localScale = cubeScale;
+						tr.localPosition = posFromVoxel(x, y, z);
+					}
+
+				} else {
+					//Debug.Log("Not voxel! " + x + " " + y + " " + z);
+				}
+
+				// identify cube from position
+				/*Vector3 pos = obj.transform.localPosition;
+				int x, y, z;
+				if (voxelFromPos(pos, out x, out y, out z)) {
+					Debug.Log("Select voxel " + x + " " + y + " " + z);
+				} else {
+					//Debug.Log("Not voxel! " + x + " " + y + " " + z);
+				}*/
+				// based on face of object hit, add a new cube
+
 			} else {
 				// remove selected
 				if (obj == m_selectObject) {
 					m_selectObject = null; 
+				}
+
+				int x, y, z;
+				if (voxelFromPos(obj.transform.localPosition, out x, out y, out z)) {
+					voxels[x, y, z] = false;
+					voxelObjs[x, y, z] = null;
 				}
 				Destroy(obj);
 				//Debug.Log("Hit " + hit.point);
@@ -99,6 +137,26 @@ public class RealVoxelsSculptControl : MonoBehaviour, IGetSculptController {
 		//}
 	}
 
+	private bool voxelFromPos(Vector3 pos, out int x, out int y, out int z) {
+		//Debug.Log("Check pos " + pos.x + " " + pos.y + " " + pos.z);
+		pos.x += (numPointsX - 1) * pointGap / 2.0f;
+		pos.z += (numPointsZ - 1) * pointGap / 2.0f;
+
+		// round up to ensure divide and floor picks the right index
+		x = Mathf.FloorToInt(pos.x / pointGap + 0.5f);
+		y = Mathf.FloorToInt(pos.y / pointGap + 0.5f);
+		z = Mathf.FloorToInt(pos.z / pointGap + 0.5f);
+		return x >= 0 && x < numPointsX && y >= 0 && y < numPointsY && z >= 0 && z < numPointsZ;
+	}
+
+	private Vector3 posFromVoxel(int x, int y, int z) {
+		return new Vector3(
+			(numPointsX - 1) * pointGap / -2.0f + pointGap * x,
+			pointGap * y,
+			(numPointsZ - 1) * pointGap / -2.0f + pointGap * z
+		);
+	}
+
 	private void updateVoxels() {
 		Debug.Log("updateVoxels");
 		if (m_container != null) {
@@ -113,19 +171,15 @@ public class RealVoxelsSculptControl : MonoBehaviour, IGetSculptController {
 		ct.SetParent(transform, false);
 		ct.localPosition = Vector3.zero;
 		ct.localScale = Vector3.one;
-		Debug.Log("I am at " + transform.position + " local " + transform.localPosition);
-		Debug.Log("New container at position " + m_container.transform.position + " local " + m_container.transform.localPosition);
-		Debug.Log("Parent is correct? " + (transform == ct.parent));
-		Vector3 cubeScale = Vector3.one * 0.9f * pointGap;
 		int i, j, k;
 
 		// build voxels out of individual cubes
-		float x, y, z;
-		x = (numPointsX - 1) * pointGap / -2.0f;
+		//float x, y, z;
+		//x = (numPointsX - 1) * pointGap / -2.0f;
 		for (i = 0; i < numPointsX; i++) {
-			y = 0; //(numPointsY - 1) * pointGap / -2.0f;
+			//y = 0; //(numPointsY - 1) * pointGap / -2.0f;
 			for (j = 0; j < numPointsY; j++) {
-				z = (numPointsZ - 1) * pointGap / -2.0f;
+				//z = (numPointsZ - 1) * pointGap / -2.0f;
 				for (k = 0; k < numPointsZ; k++) {
 					if (voxels[i,j,k]) {
 						GameObject cube = GameObject.CreatePrimitive(PrimitiveType.Cube);
@@ -133,13 +187,13 @@ public class RealVoxelsSculptControl : MonoBehaviour, IGetSculptController {
 						Transform t = cube.transform;
 						t.SetParent(ct, false);
 						t.localScale = cubeScale;
-						t.localPosition = new Vector3(x, y, z);
+						t.localPosition = posFromVoxel(i, j, k); //new Vector3(x, y, z);
 					}
-					z += pointGap;
+					//z += pointGap;
 				}
-				y += pointGap;
+				//y += pointGap;
 			}
-			x += pointGap;
+			//x += pointGap;
 		}
 	}
 
