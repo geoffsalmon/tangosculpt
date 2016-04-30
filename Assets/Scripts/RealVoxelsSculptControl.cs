@@ -10,6 +10,9 @@ public class RealVoxelsSculptControl : MonoBehaviour, IGetSculptController {
 	public float pointGap = 0.02f;
 	private Vector3 cubeScale;
 
+	private Vector3 numPointsCenter;
+	private float minPointRadius;
+
 
 
 	bool[,,] voxels;
@@ -26,14 +29,22 @@ public class RealVoxelsSculptControl : MonoBehaviour, IGetSculptController {
 	// Use this for initialization
 	void Start () {
 		cubeScale = Vector3.one * 0.9f * pointGap;
+		numPointsCenter = new Vector3(numPointsX, numPointsY, numPointsZ);
+		numPointsCenter = numPointsCenter / 2.0f;
 		voxels = new bool[numPointsX, numPointsY, numPointsZ];
 		int i, j, k;
+
+		minPointRadius = Mathf.Min(numPointsCenter.x, numPointsCenter.y);
+		minPointRadius = Mathf.Min(minPointRadius, numPointsCenter.y);
 		for (i = 0; i < numPointsX; i++) {
 			for (j = 0; j < numPointsY; j++) {
 				for (k = 0; k < numPointsZ; k++) {
-					if (Random.Range(0, 10) < 6) {
-						voxels[i, j, k] = true;
-					}
+					//if (Random.Range(0, 10) < 6) {
+					//	voxels[i, j, k] = true;
+					//}
+
+					voxels[i, j, k] = (new Vector3(i, j, k) - numPointsCenter).magnitude <= minPointRadius;
+
 				}
 			}
 		}
@@ -74,8 +85,8 @@ public class RealVoxelsSculptControl : MonoBehaviour, IGetSculptController {
 					if (m_selectObject != null) {
 						setObjColor(m_selectObject, Color.white);
 					}
-					m_selectObject = obj;
-					setObjColor(m_selectObject, Color.red);
+					//m_selectObject = obj;
+					//setObjColor(m_selectObject, Color.red);
 				}
 
 				Vector3 localNormal = transform.InverseTransformDirection(hit.normal);
@@ -87,6 +98,7 @@ public class RealVoxelsSculptControl : MonoBehaviour, IGetSculptController {
 					if (!voxels[x, y, z]) {
 						voxels[x, y, z] = true;
 						GameObject cube = GameObject.CreatePrimitive(PrimitiveType.Cube);
+						setObjColor(cube, voxelColor(x, y, z));
 						voxelObjs[x, y, z] = cube;
 						Transform tr = cube.transform;
 						tr.SetParent(m_container.transform, false);
@@ -157,6 +169,12 @@ public class RealVoxelsSculptControl : MonoBehaviour, IGetSculptController {
 		);
 	}
 
+	private Color voxelColor(int x, int y, int z) {
+		float dist = (new Vector3(x, y, z) - numPointsCenter).magnitude;
+		float r = Mathf.Clamp01(dist / minPointRadius);
+		return new Color(1-r, 0, r);
+	}
+
 	private void updateVoxels() {
 		Debug.Log("updateVoxels");
 		if (m_container != null) {
@@ -183,6 +201,7 @@ public class RealVoxelsSculptControl : MonoBehaviour, IGetSculptController {
 				for (k = 0; k < numPointsZ; k++) {
 					if (voxels[i,j,k]) {
 						GameObject cube = GameObject.CreatePrimitive(PrimitiveType.Cube);
+						setObjColor(cube, voxelColor(i, j, k));
 						voxelObjs[i, j, k] = cube;
 						Transform t = cube.transform;
 						t.SetParent(ct, false);
